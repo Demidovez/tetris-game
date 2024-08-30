@@ -6,11 +6,11 @@ namespace TetrominoSpace
     public enum TetrominoEnum
     {
         I,
-        O,
-        T,
         J,
         L,
+        O,
         S,
+        T,
         Z
     }
 

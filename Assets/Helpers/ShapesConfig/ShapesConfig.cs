@@ -6,8 +6,8 @@ using UnityEngine;
 
 public static class ShapesConfig
 {
-    public static readonly float cos = Mathf.Cos(Mathf.PI / 2f);
-    public static readonly float sin = Mathf.Sin(Mathf.PI / 2f);
+    private static readonly float cos = Mathf.Cos(Mathf.PI / 2f);
+    private static readonly float sin = Mathf.Sin(Mathf.PI / 2f);
     public static readonly float[] RotationMatrix = { cos, sin, -sin, cos };
 
     public static readonly Dictionary<TetrominoEnum, Vector2Int[]> Cells = new()
