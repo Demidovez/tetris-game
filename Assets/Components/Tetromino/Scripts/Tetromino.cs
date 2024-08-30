@@ -20,10 +20,12 @@ namespace TetrominoSpace
         public TetrominoEnum TetrominoSymbol;
         public Tile Tile;
         public Vector2Int[] Cells;
+        public Vector2Int[,] WallKicks { get; private set; }
 
         public void Initialize()
         {
             Cells = ShapesConfig.Cells[TetrominoSymbol];
+            WallKicks = ShapesConfig.WallKicks[TetrominoSymbol];
         }
     }
 }

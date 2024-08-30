@@ -5,6 +5,8 @@ using UnityEngine;
 
 namespace PieceSpace
 {
+    delegate int RoundFunc(float number);
+    
     public class Piece : MonoBehaviour
     {
         public Tetromino Tetromino { get; private set; }
@@ -12,11 +14,18 @@ namespace PieceSpace
         public Vector3Int[] Cells { get; private set; }
 
         private int _rotationIndex;
-        delegate int RoundFunc(float number);
+        private readonly float _moveDelay = 0.1f;
+        private readonly float _lockDelay = 0.5f;
+        private float _stepDelay = 1f;
+        private float _moveTime;
+        private float _lockTime;
+        private float _stepTime;
 
         private void Update()
         {
             Board.Instance.Clear(this);
+
+            _lockTime += Time.deltaTime;
             
             if (Input.GetKeyDown(KeyCode.Q))
             {
@@ -26,22 +35,19 @@ namespace PieceSpace
                 Rotate(1);
             }
             
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                Move(Vector2Int.left);
-            } else if (Input.GetKeyDown(KeyCode.D))
-            {
-                Move(Vector2Int.right);
-            }
-
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                Move(Vector2Int.down);
-            }
-
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 HardDrop();
+            }
+            
+            if (Time.time > _moveTime)
+            {
+                HandleMoveInputs();
+            }
+
+            if (Time.time > _stepTime)
+            {
+                Step();
             }
 
             Board.Instance.Set(this);
@@ -52,11 +58,11 @@ namespace PieceSpace
             Position = position;
             Tetromino = tetromino;
             _rotationIndex = 0;
+            _stepTime = Time.time + _stepDelay;
+            _moveTime = Time.time + _moveDelay;
+            _lockTime = 0f;
 
-            if (Cells == null)
-            {
-                Cells = new Vector3Int[Tetromino.Cells.Length];
-            }
+            Cells ??= new Vector3Int[Tetromino.Cells.Length];
 
             for (int i = 0; i < Tetromino.Cells.Length; i++)
             {
@@ -75,6 +81,8 @@ namespace PieceSpace
             if (isValidate)
             {
                 Position = newPosition;
+                _moveTime = Time.time + _moveDelay;
+                _lockTime = 0f;
             }
 
             return isValidate;
@@ -83,6 +91,8 @@ namespace PieceSpace
         private void HardDrop()
         {
             while (Move(Vector2Int.down)) {}
+            
+            Lock();
         }
 
         private void Rotate(int direction)
@@ -92,6 +102,41 @@ namespace PieceSpace
             _rotationIndex += Wrap(_rotationIndex + direction, 0, 4);
 
             ApplyRotationMatrix(direction);
+
+            if (!TestWallKicks(_rotationIndex, direction))
+            {
+                _rotationIndex = originalRotationIndex;
+                ApplyRotationMatrix(-direction);
+            }
+        }
+
+        private bool TestWallKicks(int rotationIndex, int rotationDirection)
+        {
+            int wallKickIndex = GetWallKickIndex(rotationIndex, rotationDirection);
+
+            for (int i = 0; i < Tetromino.WallKicks.GetLength(1); i++)
+            {
+                Vector2Int translation = Tetromino.WallKicks[wallKickIndex, i];
+
+                if (Move(translation))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private int GetWallKickIndex(int rotationIndex, int rotationDirection)
+        {
+            int wallKickIndex = rotationIndex * 2;
+
+            if (rotationDirection < 0)
+            {
+                wallKickIndex++;
+            }
+
+            return Wrap(wallKickIndex, 0, Tetromino.WallKicks.GetLength(0));
         }
 
         private void ApplyRotationMatrix(int direction)
@@ -119,6 +164,44 @@ namespace PieceSpace
 
                 Cells[i] = new Vector3Int(x, y, 0);
             }
+        }
+
+        private void HandleMoveInputs()
+        {
+            if (Input.GetKeyDown(KeyCode.S))
+            {
+                if (Move(Vector2Int.down))
+                {
+                    _stepTime = Time.time + _stepDelay;
+                }
+            }
+            
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                Move(Vector2Int.left);
+            } else if (Input.GetKeyDown(KeyCode.D))
+            {
+                Move(Vector2Int.right);
+            }
+        }
+
+        private void Step()
+        {
+            _stepDelay = Time.time + _stepDelay;
+
+            Move(Vector2Int.down);
+
+            if (_lockTime > _lockDelay)
+            {
+                Lock();
+            }
+        }
+
+        private void Lock()
+        {
+            Board.Instance.Set(this);
+            Board.Instance.ClearLines();
+            Board.Instance.SpawnPiece();
         }
 
         private int Wrap(int input, int min, int max)
