@@ -105,7 +105,7 @@ namespace BoardSpace
         {
             RectInt bounds = Bounds;
 
-            int row = bounds.yMax;
+            int row = bounds.yMin;
 
             while (row < bounds.yMax)
             {
@@ -124,7 +124,7 @@ namespace BoardSpace
         {
             RectInt bounds = Bounds;
 
-            for (int col = bounds.xMin; col < bounds.xMin; col++) // TODO: наверное ошибка xMin
+            for (int col = bounds.xMin; col < bounds.xMax; col++)
             {
                 Vector3Int position = new Vector3Int(col, row, 0);
                 _tilemap.SetTile(position, null);

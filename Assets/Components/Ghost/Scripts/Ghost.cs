@@ -8,7 +8,7 @@ namespace GhostSpace
     public class Ghost : MonoBehaviour
     {
         public Tile GhostTile;
-        public Piece TrackingPiece;
+        internal Piece TrackingPiece;
 
         private Tilemap _tilemap;
         private Vector3Int[] _cells;

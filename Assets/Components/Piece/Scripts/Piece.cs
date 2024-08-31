@@ -1,5 +1,5 @@
-using System;
 using BoardSpace;
+using GhostSpace;
 using TetrominoSpace;
 using UnityEngine;
 
@@ -9,14 +9,15 @@ namespace PieceSpace
     
     public class Piece : MonoBehaviour
     {
+        public Ghost Ghost;
         public Tetromino Tetromino { get; private set; }
         public Vector3Int Position { get; private set; }
         public Vector3Int[] Cells { get; private set; }
 
         private int _rotationIndex;
-        private readonly float _moveDelay = 0.1f;
-        private readonly float _lockDelay = 0.5f;
-        private float _stepDelay = 1f;
+        private const float _moveDelay = 0.1f;
+        private const float _lockDelay = 0.5f;
+        private const float _stepDelay = 1f;
         private float _moveTime;
         private float _lockTime;
         private float _stepTime;
@@ -55,6 +56,8 @@ namespace PieceSpace
 
         public void Initialize(Vector3Int position, Tetromino tetromino)
         {
+            Ghost.TrackingPiece = this;
+            
             Position = position;
             Tetromino = tetromino;
             _rotationIndex = 0;
@@ -187,7 +190,7 @@ namespace PieceSpace
 
         private void Step()
         {
-            _stepDelay = Time.time + _stepDelay;
+            _stepTime = Time.time + _stepDelay;
 
             Move(Vector2Int.down);
 
