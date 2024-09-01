@@ -18,20 +18,23 @@ namespace PieceSpace
         private const float _moveDelay = 0.1f;
         private const float _lockDelay = 0.5f;
         private const float _stepDelay = 1f;
+        private const float _lockInputDelay = 0.2f;
         private float _moveTime;
         private float _lockTime;
         private float _stepTime;
+        private float _lockInputTime;
 
         private void Update()
         {
             Board.Instance.Clear(this);
 
             _lockTime += Time.deltaTime;
+            _lockInputTime += Time.deltaTime;
             
-            if (Input.GetKeyDown(KeyCode.Q))
+            if (InputGetKeyWithDelay(KeyCode.Q))
             {
                 Rotate(-1);
-            } else if (Input.GetKeyDown(KeyCode.E))
+            } else if (InputGetKeyWithDelay(KeyCode.E))
             {
                 Rotate(1);
             }
@@ -52,6 +55,20 @@ namespace PieceSpace
             }
 
             Board.Instance.Set(this);
+        }
+
+        private bool InputGetKeyWithDelay(KeyCode keyCode)
+        {
+            bool isGetKey = Input.GetKey(keyCode);
+            bool isGetKeyDown = Input.GetKeyDown(keyCode);
+            
+            if (isGetKeyDown || (isGetKey && _lockInputTime > _lockInputDelay))
+            {
+                _lockInputTime = 0f;
+                return true;
+            }
+            
+            return false;
         }
 
         public void Initialize(Vector3Int position, Tetromino tetromino)
@@ -171,7 +188,7 @@ namespace PieceSpace
 
         private void HandleMoveInputs()
         {
-            if (Input.GetKeyDown(KeyCode.S))
+            if (InputGetKeyWithDelay(KeyCode.S))
             {
                 if (Move(Vector2Int.down))
                 {
@@ -179,10 +196,10 @@ namespace PieceSpace
                 }
             }
             
-            if (Input.GetKeyDown(KeyCode.A))
+            if (InputGetKeyWithDelay(KeyCode.A))
             {
                 Move(Vector2Int.left);
-            } else if (Input.GetKeyDown(KeyCode.D))
+            } else if (InputGetKeyWithDelay(KeyCode.D))
             {
                 Move(Vector2Int.right);
             }
